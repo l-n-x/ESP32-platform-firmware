@@ -91,6 +91,7 @@
 #define MICROPY_ENABLE_FINALISER            (0)
 #endif
 #define MICROPY_STACK_CHECK                 (1)
+#define MICROPY_GC_MULTIHEAP                (1)
 #define MICROPY_ENABLE_EMERGENCY_EXCEPTION_BUF (1)
 #define MICROPY_KBD_EXCEPTION               (1)
 #define MICROPY_HELPER_REPL                 (1)
@@ -210,6 +211,9 @@
 #define MICROPY_PY_UHASHLIB                 (0) // We use the ESP32 version
 #define MICROPY_PY_UHASHLIB_SHA1            (MICROPY_PY_USSL && MICROPY_SSL_MBEDTLS)
 
+#define MICROPY_PY_UCRYPTOLIB               (1)
+#define MICROPY_PY_UCRYPTOLIB_CTR           (1)
+
 #ifdef CONFIG_MICROPY_USE_WEBSOCKETS
 #define MICROPY_PY_WEBSOCKET                (1)
 #else
@@ -284,6 +288,7 @@ extern const struct _mp_obj_module_t mp_module_ymodem;
 extern const struct _mp_obj_module_t esp_module;
 extern const struct _mp_obj_module_t espnow_module;
 extern const struct _mp_obj_module_t consts_module;
+extern const struct _mp_obj_module_t loopback_module;
 
 #ifdef CONFIG_DRIVER_MPU6050_ENABLE
 extern const struct _mp_obj_module_t mpu6050_module;
@@ -291,6 +296,14 @@ extern const struct _mp_obj_module_t mpu6050_module;
 
 #ifdef CONFIG_DRIVER_SNDMIXER_ENABLE
 extern const struct _mp_obj_module_t sndmixer_module;
+#endif
+
+#ifdef CONFIG_DRIVER_MICROPHONE_ENABLE
+extern const struct _mp_obj_module_t microphone_module;
+#endif
+
+#ifdef CONFIG_MICROPY_USE_OPUS
+extern const struct _mp_obj_module_t libopus_module;
 #endif
 
 #ifdef CONFIG_DRIVER_HUB75_ENABLE
@@ -451,10 +464,42 @@ extern const struct _mp_obj_module_t mp_module_bluetooth;
 #define BUILTIN_MODULE_SNDMIXER
 #endif
 
+#ifdef CONFIG_DRIVER_MICROPHONE_ENABLE
+#define BUILTIN_MODULE_MICROPHONE { MP_OBJ_NEW_QSTR(MP_QSTR_microphone), (mp_obj_t)&microphone_module },
+#else
+#define BUILTIN_MODULE_MICROPHONE
+#endif
+
+#ifdef CONFIG_MICROPY_USE_OPUS
+#define BUILTIN_MODULE_LIBOPUS { MP_OBJ_NEW_QSTR(MP_QSTR_opus), (mp_obj_t)&libopus_module },
+#else
+#define BUILTIN_MODULE_LIBOPUS
+#endif
+
 #ifdef CONFIG_DRIVER_MPU6050_ENABLE
 #define BUILTIN_MODULE_MPU6050 { MP_OBJ_NEW_QSTR(MP_QSTR_mpu6050), (mp_obj_t)&mpu6050_module },
 #else
 #define BUILTIN_MODULE_MPU6050
+#endif
+
+#ifdef CONFIG_DRIVER_AM2320_ENABLE
+extern const struct _mp_obj_module_t am2320_module;
+#define BUILTIN_MODULE_AM2320 { MP_OBJ_NEW_QSTR(MP_QSTR_am2320), (mp_obj_t)&am2320_module },
+#else
+#define BUILTIN_MODULE_AM2320
+#endif
+
+#ifdef CONFIG_DRIVER_PCA9555_ENABLE
+extern const struct _mp_obj_module_t pca9555_module;
+#define BUILTIN_MODULE_PCA9555 { MP_OBJ_NEW_QSTR(MP_QSTR_pca9555), (mp_obj_t)&pca9555_module },
+#else
+#define BUILTIN_MODULE_PCA9555
+#endif
+
+#if MICROPY_PY_UCRYPTOLIB
+#define BUILTIN_MODULE_UCRYPTOLIB { MP_OBJ_NEW_QSTR(MP_QSTR_ucryptolib), (mp_obj_t)&mp_module_ucryptolib },
+#else
+#define BUILTIN_MODULE_UCRYPTOLIB
 #endif
 
 
@@ -467,8 +512,12 @@ extern const struct _mp_obj_module_t mp_module_bluetooth;
 	{ MP_OBJ_NEW_QSTR(MP_QSTR_ymodem),   (mp_obj_t)&mp_module_ymodem }, \
 	{ MP_OBJ_NEW_QSTR(MP_QSTR_uhashlib), (mp_obj_t)&mp_module_uhashlib }, \
 	{ MP_OBJ_NEW_QSTR(MP_QSTR_esp),      (mp_obj_t)&esp_module }, \
-	{ MP_OBJ_NEW_QSTR(MP_QSTR_consts), (mp_obj_t)&consts_module }, \
+	{ MP_OBJ_NEW_QSTR(MP_QSTR_consts),   (mp_obj_t)&consts_module }, \
+	{ MP_OBJ_NEW_QSTR(MP_QSTR_loopback), (mp_obj_t)&loopback_module }, \
+	BUILTIN_MODULE_UCRYPTOLIB \
 	BUILTIN_MODULE_SNDMIXER \
+	BUILTIN_MODULE_MICROPHONE \
+	BUILTIN_MODULE_LIBOPUS \
 	BUILTIN_MODULE_CURL \
 	BUILTIN_MODULE_REQUESTS \
 	BUILTIN_MODULE_BLUETOOTH \
@@ -484,6 +533,8 @@ extern const struct _mp_obj_module_t mp_module_bluetooth;
 	BUILTIN_MODULE_DISOBEY_SAMD \
     BUILTIN_MODULE_HACKTIVITY_SAMD \
 	BUILTIN_MODULE_MPU6050 \
+	BUILTIN_MODULE_AM2320 \
+	BUILTIN_MODULE_PCA9555 \
 	{ MP_OBJ_NEW_QSTR(MP_QSTR_espnow), (mp_obj_t)&espnow_module }, \
 
 #define MICROPY_PORT_BUILTIN_MODULE_WEAK_LINKS \

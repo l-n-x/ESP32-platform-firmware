@@ -1,8 +1,7 @@
 /* This file specifies the framebuffer configuration for the displays that are supported. */
 /* The order in this file determines priority if multiple drivers are enabled */
 
-#ifndef _DRIVER_FRAMEBUFFER_DEVICES_H_
-#define _DRIVER_FRAMEBUFFER_DEVICES_H_
+#pragma once
 
 #ifdef CONFIG_DRIVER_FRAMEBUFFER_ENABLE
 
@@ -14,6 +13,11 @@
 #include "driver_gxgde0213b1.h"
 #include "driver_fri3d.h"
 #include "driver_flipdotter.h"
+#include "driver_st7735.h"
+#include "driver_st7789v.h"
+#include "driver_nokia6100.h"
+#include "driver_disobey_samd.h"
+#include "driver_ledmatrix.h"
 
 /* E-INK display as used on the SHA2017 and HackerHotel 2019 badges */
 #if defined(CONFIG_DRIVER_EINK_ENABLE)
@@ -29,8 +33,8 @@
 		#define FB_ALPHA_ENABLED
 		#define FB_FLUSH_GS(buffer,eink_flags) driver_eink_display_greyscale(buffer,eink_flags,16);
 	#endif
-	#define FB_FLUSH(buffer,eink_flags,x0,y0,x1,y1) driver_eink_display(buffer,eink_flags);
-	//#define FB_FLUSH(buffer,eink_flags,x0,y0,x1,y1) driver_eink_display_part(buffer,eink_flags,x0,x1); //Doesn't work.
+	//#define FB_FLUSH(buffer,eink_flags,x0,y0,x1,y1) driver_eink_display(buffer,eink_flags);
+	#define FB_FLUSH(buffer,eink_flags,x0,y0,x1,y1) driver_eink_display_part(buffer,eink_flags,x0,x1);
 	#define COLOR_FILL_DEFAULT 0xFFFFFF
 	#define COLOR_TEXT_DEFAULT 0x000000
 
@@ -41,7 +45,7 @@
 	#define FB_HEIGHT GXGDE0213B1_HEIGHT
 	#define FB_TYPE_1BPP
 	#define FB_1BPP_OHS
-	#define FB_FLUSH(buffer,eink_flags,x0,y0,x1,y1) driver_gxgde0213b1_write(buffer);
+	#define FB_FLUSH(buffer,eink_flags,x0,y0,x1,y1) driver_gxgde0213b1_write(buffer)
 	#define COLOR_FILL_DEFAULT 0xFFFFFF
 	#define COLOR_TEXT_DEFAULT 0x000000
 	
@@ -52,7 +56,7 @@
 	#define FB_HEIGHT SSD1306_HEIGHT
 	#define FB_TYPE_1BPP
 	#define FB_1BPP_VERT2
-	#define FB_FLUSH(buffer,eink_flags,x0,y0,x1,y1) driver_ssd1306_write_part(buffer,x0,y0,x1,y1);
+	#define FB_FLUSH(buffer,eink_flags,x0,y0,x1,y1) driver_ssd1306_write_part(buffer,x0,y0,x1,y1)
 	#define COLOR_FILL_DEFAULT 0x000000
 	#define COLOR_TEXT_DEFAULT 0xFFFFFF
 
@@ -63,7 +67,10 @@
 	#define FB_HEIGHT ERC12864_HEIGHT
 	#define FB_TYPE_1BPP
 	#define FB_1BPP_VERT
-	#define FB_FLUSH(buffer,eink_flags,x0,y0,x1,y1) driver_erc12864_write_part(buffer,x0,y0,x1,y1);
+	#define FB_FLUSH(buffer,eink_flags,x0,y0,x1,y1) driver_erc12864_write_part(buffer,x0,y0,x1,y1)
+	#ifdef CONFIG_DRIVER_DISOBEY_SAMD_ENABLE
+		#define FB_SET_BACKLIGHT(brightness) driver_disobey_samd_write_backlight(brightness)
+	#endif
 	#define COLOR_FILL_DEFAULT 0xFFFFFF
 	#define COLOR_TEXT_DEFAULT 0x000000
 
@@ -72,14 +79,46 @@
 	#define FB_SIZE ILI9341_BUFFER_SIZE
 	#define FB_WIDTH ILI9341_WIDTH
 	#define FB_HEIGHT ILI9341_HEIGHT
-	#define FB_TYPE_16BPP
+	#ifdef CONFIG_DRIVER_ILI9341_8C
+			#define FB_TYPE_8CBPP
+	#else
+			#define FB_TYPE_16BPP
+	#endif
 	#define FB_ALPHA_ENABLED
 	#define FB_FLUSH(buffer,eink_flags,x0,y0,x1,y1) driver_ili9341_write_partial(buffer, x0, y0, x1, y1)
+	#define FB_SET_BACKLIGHT(brightness) driver_ili9341_set_backlight(brightness > 127)
+	#define COLOR_FILL_DEFAULT 0x000000
+	#define COLOR_TEXT_DEFAULT 0xFFFFFF
+	
+/* ST7735 */
+#elif defined(CONFIG_DRIVER_ST7735_ENABLE)
+	#define FB_SIZE ST7735_BUFFER_SIZE
+	#define FB_WIDTH ST7735_WIDTH
+	#define FB_HEIGHT ST7735_HEIGHT
+	#define FB_TYPE_16BPP
+	#define FB_FLUSH(buffer,eink_flags,x0,y0,x1,y1) driver_st7735_write_partial(buffer, x0, y0, x1, y1)
+	#define FB_SET_BACKLIGHT(brightness) driver_st7735_set_backlight(brightness > 127)
+	#define COLOR_FILL_DEFAULT 0x000000
+	#define COLOR_TEXT_DEFAULT 0xFFFFFF
+	
+/* ST7789V */
+#elif defined(CONFIG_DRIVER_ST7789V_ENABLE)
+	#define FB_SIZE ST7789V_BUFFER_SIZE
+	#define FB_WIDTH ST7789V_WIDTH
+	#define FB_HEIGHT ST7789V_HEIGHT
+	#ifdef CONFIG_DRIVER_ST7789V_8C
+			#define FB_TYPE_8CBPP
+	#else
+			#define FB_TYPE_16BPP
+	#endif
+	#define FB_FLUSH(buffer,eink_flags,x0,y0,x1,y1) driver_st7789v_write_partial(buffer, x0, y0, x1, y1)
+	#define FB_SET_BACKLIGHT(brightness) driver_st7789v_set_backlight(brightness > 127)
 	#define COLOR_FILL_DEFAULT 0x000000
 	#define COLOR_TEXT_DEFAULT 0xFFFFFF
 	
 /* HUB75 led matrix */
 #elif defined(CONFIG_DRIVER_HUB75_ENABLE)
+    #define CONFIG_DRIVER_FRAMEBUFFER_DOUBLE_BUFFERED
 	#define FB_SIZE HUB75_BUFFER_SIZE
 	#define FB_WIDTH HUB75_WIDTH
 	#define FB_HEIGHT HUB75_HEIGHT
@@ -101,12 +140,35 @@
 
 /* Otter flipdot matrix */
 #elif CONFIG_DRIVER_FLIPDOTTER_ENABLE
+    #define CONFIG_DRIVER_FRAMEBUFFER_DOUBLE_BUFFERED
 	#define FB_SIZE FLIPDOTTER_BUFFER_SIZE
 	#define FB_WIDTH FLIPDOTTER_WIDTH
 	#define FB_HEIGHT FLIPDOTTER_HEIGHT
 	#define FB_TYPE_1BPP
 	#define FB_1BPP_VERT
 	#define FB_FLUSH(buffer,eink_flags,x0,y0,x1,y1) driver_flipdotter_write(buffer);
+	#define FB_SET_BACKLIGHT(brightness) driver_flipdotter_set_backlight(brightness)
+	#define COLOR_FILL_DEFAULT 0x000000
+	#define COLOR_TEXT_DEFAULT 0xFFFFFF
+	
+/* Nokia 6100 LCD */
+#elif defined(CONFIG_DRIVER_NOKIA6100_ENABLE)
+	#define FB_SIZE NOKIA6100_BUFFER_SIZE
+	#define FB_WIDTH NOKIA6100_WIDTH
+	#define FB_HEIGHT NOKIA6100_HEIGHT
+	#define FB_TYPE_16BPP //HACK use 12-bit color depth when this mode is ready for use
+	#define FB_FLUSH(buffer,eink_flags,x0,y0,x1,y1) driver_nokia6100_write_partial(buffer, x0, y0, x1, y1)
+	#define FB_SET_BACKLIGHT(brightness) driver_nokia6100_set_backlight(brightness > 127)
+	#define COLOR_FILL_DEFAULT 0x000000
+	#define COLOR_TEXT_DEFAULT 0xFFFFFF
+
+/* LED matrix*/
+#elif defined(CONFIG_DRIVER_LEDMATRIX_ENABLE)
+	#define FB_SIZE LEDMATRIX_BUFFER_SIZE
+	#define FB_WIDTH LEDMATRIX_WIDTH
+	#define FB_HEIGHT LEDMATRIX_HEIGHT
+	#define FB_TYPE_8BPP
+	#define FB_FLUSH(buffer,eink_flags,x0,y0,x1,y1) driver_ledmatrix_set_buffer(buffer);
 	#define COLOR_FILL_DEFAULT 0x000000
 	#define COLOR_TEXT_DEFAULT 0xFFFFFF
 #else
@@ -117,6 +179,10 @@
 	#define PIXEL_SIZE 1
 #elif defined(FB_TYPE_8BPP)
 	#define PIXEL_SIZE 8
+#elif defined(FB_TYPE_8CBPP)
+	#define PIXEL_SIZE 8
+#elif defined(FB_TYPE_12BPP)
+	#define PIXEL_SIZE 12
 #elif defined(FB_TYPE_16BPP)
 	#define PIXEL_SIZE 16
 #elif defined(FB_TYPE_24BPP)
@@ -126,5 +192,3 @@
 #endif
 
 #endif
-
-#endif //_DRIVER_FRAMEBUFFER_DEVICES_H_

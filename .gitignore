@@ -5,5 +5,10 @@ firmware/sdkconfig.old
 .vscode/
 cmake-build-debug
 *.pyc
+*.swp
 *qstrdefs.generated.h
 __pycache__
+.vscode
+xtensa-esp32-elf
+monitor
+flash

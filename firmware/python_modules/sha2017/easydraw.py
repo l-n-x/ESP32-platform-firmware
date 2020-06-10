@@ -1,4 +1,4 @@
-import display, badge, version, time, orientation, machine
+import display, version, time, orientation, machine
 
 lastTitle = ""
 
@@ -10,7 +10,7 @@ def msg_nosplit(message, title = 'Loading...', reset = False):
 	"""
 	global messageHistory, lastTitle
 	
-	num_lines = ((display.height() - 16)//display.getTextHeight(" ", version.font_default)) - 2
+	num_lines = ((display.height() - 16)//display.getTextHeight(" ", version.font_default))
 	
 	if reset:
 		lastTitle = title
@@ -38,15 +38,13 @@ def msg_nosplit(message, title = 'Loading...', reset = False):
 
 	display.drawRect(0, 0, display.width(), 14, True, 0)
 	display.drawText(0, 0, lastTitle, 0xFFFFFF, "Roboto_Regular12")
-	#h = display.getTextHeight(" ", version.font_header)
-	#display.drawLine(0, h, display.width(), h, 0x000000)
 
 	display.flush(display.FLAG_LUT_FASTEST)
 	
 	return len(messageHistory)>=num_lines-1
 	
 def msg(message, title = "Loading...", reset = False, wait = 0):
-	num_lines = ((display.height() - 16)//display.getTextHeight(" ", version.font_default)) - 2
+	num_lines = ((display.height() - 16)//display.getTextHeight(" ", version.font_default))
 	scroll = False
 	try:
 		lines = lineSplit(str(message))
@@ -97,7 +95,7 @@ def messageCentered(message, firstLineTitle=True, png=None):
 		pngSize = (0,0)
 		if png != None:
 			try:
-				pngSize = badge.png_info(png)
+				pngSize = display.pngInfo(png)
 				pngSize = [pngSize[0], pngSize[1]+2] #Little bit of extra offset
 			except BaseException as e:
 				#print("Error in PNG height",e)

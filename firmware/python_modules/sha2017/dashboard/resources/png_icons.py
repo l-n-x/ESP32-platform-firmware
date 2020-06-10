@@ -1,1 +1,1 @@
-../../../shared/dashboard/resources/png_icons.py
+../../../resources/png_icons_black_on_white.py

@@ -1,1 +1,1 @@
-../../../shared/dashboard/terminal/launcher.py
+../../../generic/dashboard/terminal/launcher.py
